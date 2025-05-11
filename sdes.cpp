@@ -21,30 +21,30 @@ public:
         assert((int)block.size() == BLOCK_SIZE);
         assert((int)key.size() == 10);
 
-        auto subkey1 = get_first_subkey(key);
-        auto subkey2 = get_second_subkey(key);
+        auto subkey1 = getFirstSubkey(key);
+        auto subkey2 = getSecondSubkey(key);
 
-        auto permuted_text = apply_identity_permutation(block);
-        auto permuted_with_subkey1 = apply_fk(permuted_text.substr(0, 4), permuted_text.substr(4), subkey1);
-        auto switched = switch_function(permuted_with_subkey1);
-        auto permuted_with_subkey2 = apply_fk(switched.substr(0, 4), switched.substr(4), subkey2);
+        auto permuted_text = applyIdentityPermutation(block);
+        auto permuted_with_subkey1 = applyFeistel(permuted_text.substr(0, 4), permuted_text.substr(4), subkey1);
+        auto switched = switchFunction(permuted_with_subkey1);
+        auto permuted_with_subkey2 = applyFeistel(switched.substr(0, 4), switched.substr(4), subkey2);
 
-        return apply_inverse_of_identity_permutation(permuted_with_subkey2);
+        return applyInverseOfIdentityPermutation(permuted_with_subkey2);
     }
 
     string decrypt(string block) {
         assert((int)block.size() == BLOCK_SIZE);
         assert((int)key.size() == 10);
 
-        auto subkey1 = get_first_subkey(key);
-        auto subkey2 = get_second_subkey(key);
+        auto subkey1 = getFirstSubkey(key);
+        auto subkey2 = getSecondSubkey(key);
 
-        auto permuted_text = apply_identity_permutation(block);
-        auto permuted_with_subkey2 = apply_fk(permuted_text.substr(0, 4), permuted_text.substr(4), subkey2);
-        auto switched = switch_function(permuted_with_subkey2);
-        auto permuted_with_subkey1 = apply_fk(switched.substr(0, 4), switched.substr(4), subkey1);
+        auto permuted_text = applyIdentityPermutation(block);
+        auto permuted_with_subkey2 = applyFeistel(permuted_text.substr(0, 4), permuted_text.substr(4), subkey2);
+        auto switched = switchFunction(permuted_with_subkey2);
+        auto permuted_with_subkey1 = applyFeistel(switched.substr(0, 4), switched.substr(4), subkey1);
 
-        return apply_inverse_of_identity_permutation(permuted_with_subkey1);
+        return applyInverseOfIdentityPermutation(permuted_with_subkey1);
     }
 
 protected:
@@ -70,7 +70,7 @@ protected:
         {2, 1, 0, 3}
     };
 
-    int sbox_lookup(vector<vector<int>> sbox, string row, string col) {
+    int sboxLookup(vector<vector<int>> sbox, string row, string col) {
         // cout << "sbox_lookup " << row << " " << col << endl;
         assert((int)row.size() == 2);
         assert((int)col.size() == 2);
@@ -79,15 +79,15 @@ protected:
         return s0[row_num][col_num];
     }
 
-    int sbox0_lookup(string row, string col) {
-        return sbox_lookup(s0, row, col);
+    int sbox0Lookup(string row, string col) {
+        return sboxLookup(s0, row, col);
     }
 
-    int sbox1_lookup(string row, string col) {
-        return sbox_lookup(s1, row, col);
+    int sbox1Lookup(string row, string col) {
+        return sboxLookup(s1, row, col);
     }
 
-    string expand_and_permute(string mask) {
+    string expandAndPermute(string mask) {
         assert((int)mask.size() == 4);
         // E/P (4, 1, 2, 3, 2, 3, 4, 1)
         string ans = string(8, '0');
@@ -99,12 +99,12 @@ protected:
         return ans;
     }
 
-    string switch_function(string mask) {
+    string switchFunction(string mask) {
         assert((int)mask.size() == 8);
         return mask.substr(4, 4) + mask.substr(0, 4);
     }
 
-    string apply_permutation(string mask, vector<int> p) {
+    string applyPermutation(string mask, vector<int> p) {
         assert((int)mask.size() == (int)p.size());
         string ans = string((int)mask.size(), '0');
         for(int i = 0; i < (int)mask.size(); i++) {
@@ -115,7 +115,7 @@ protected:
 
     string F(string mask, string subkey) {
         assert((int)mask.size() == 4);
-        auto expanded_mask = expand_and_permute(mask);
+        auto expanded_mask = expandAndPermute(mask);
         auto pos_mapping = expanded_mask ^ subkey;
 
         string s0_row = { pos_mapping[0], pos_mapping[3] };
@@ -131,8 +131,8 @@ protected:
         // cout << "s1_row: " << s1_row << endl;
         // cout << "s1_col: " << s1_col << endl;
 
-        int s0_val = sbox_lookup(s0, s0_row, s0_col);
-        int s1_val = sbox_lookup(s1, s1_row, s1_col);
+        int s0_val = sbox0Lookup(s0_row, s0_col);
+        int s1_val = sbox1Lookup(s1_row, s1_col);
 
         bitset<2> s0_bitset(s0_val);
         bitset<2> s1_bitset(s1_val);
@@ -142,30 +142,30 @@ protected:
 
         string r = s0_str + s1_str;
 
-        return apply_permutation(r, sbox_permutation);
+        return applyPermutation(r, sbox_permutation);
     }
 
-    string apply_fk(string l, string r, string subkey) {
+    string applyFeistel(string l, string r, string subkey) {
         return (l ^ F(r, subkey)) + r;
     }
 
-    string apply_identity_permutation(string mask) {
-        return apply_permutation(mask, ip);
+    string applyIdentityPermutation(string mask) {
+        return applyPermutation(mask, ip);
     }
 
-    string apply_inverse_of_identity_permutation(string mask) {
-        return apply_permutation(mask, ip_inv);
+    string applyInverseOfIdentityPermutation(string mask) {
+        return applyPermutation(mask, ip_inv);
     }
 
     // (1010000010) -> (1000001100).
     string permute10(string input) {
         // P10(k1, k2, k3, k4, k5, k6 , k7, k8, k9, k10) 
         //  = (k3, k5, k2, k7, k4, k10, k1, k9, k8, k6)
-        return apply_permutation(input, p10);
+        return applyPermutation(input, p10);
     }
 
     // 0000111000 -> 10100100
-    string pick_and_permute8(string input) {
+    string pickAndPermute8(string input) {
         assert(int(input.size()) == 10);
         //P8 (1, 2, 3, 4, 5, 6, 7, 8, 0, 10)
         // = (6 3 7 4 8 5 10 9)
@@ -178,12 +178,12 @@ protected:
 
     // 10000 -> 00001
     // 01100 -> 11000
-    string left_shift(string s) {
+    string leftShift(string s) {
         int size = (int)s.size();
         return s.substr(1, size - 1) + s[0];
     }
 
-    string get_first_subkey(string key) {
+    string getFirstSubkey(string key) {
         int size = (int)key.size();
         assert(size % 2 == 0);
         auto permuted_key = permute10(key);
@@ -191,13 +191,13 @@ protected:
         auto l = permuted_key.substr(0, size / 2);
         auto r = permuted_key.substr(size / 2, size / 2);
 
-        auto shifted_l = left_shift(l);
-        auto shifted_r = left_shift(r);
+        auto shifted_l = leftShift(l);
+        auto shifted_r = leftShift(r);
 
-        return pick_and_permute8(shifted_l + shifted_r);
+        return pickAndPermute8(shifted_l + shifted_r);
     }
 
-    string get_second_subkey(string key) {
+    string getSecondSubkey(string key) {
         int size = (int)key.size();
         assert(size % 2 == 0);
         auto permuted_key = permute10(key);
@@ -208,11 +208,11 @@ protected:
         string shifted_l = l, shifted_r = r;
 
         for(int i = 0; i < 3; i++) { // 1 + 2 shifts
-            shifted_l = left_shift(shifted_l);
-            shifted_r = left_shift(shifted_r);
+            shifted_l = leftShift(shifted_l);
+            shifted_r = leftShift(shifted_r);
         }
 
-        return pick_and_permute8(shifted_l + shifted_r);
+        return pickAndPermute8(shifted_l + shifted_r);
     }
 
 };
