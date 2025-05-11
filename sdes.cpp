@@ -16,13 +16,16 @@ public:
     const int BLOCK_SIZE = 8; // bits
     
     string key;
+
+    SDES(string key_) : key(key_) {
+        assert((int)key.size() == 10);
+    }
     
     string encrypt(string block) {
         assert((int)block.size() == BLOCK_SIZE);
-        assert((int)key.size() == 10);
 
-        auto subkey1 = getFirstSubkey(key);
-        auto subkey2 = getSecondSubkey(key);
+        auto subkey1 = getFirstSubkey();
+        auto subkey2 = getSecondSubkey();
 
         auto permuted_text = applyIdentityPermutation(block);
         auto permuted_with_subkey1 = applyFeistel(permuted_text.substr(0, 4), permuted_text.substr(4), subkey1);
@@ -34,10 +37,9 @@ public:
 
     string decrypt(string block) {
         assert((int)block.size() == BLOCK_SIZE);
-        assert((int)key.size() == 10);
 
-        auto subkey1 = getFirstSubkey(key);
-        auto subkey2 = getSecondSubkey(key);
+        auto subkey1 = getFirstSubkey();
+        auto subkey2 = getSecondSubkey();
 
         auto permuted_text = applyIdentityPermutation(block);
         auto permuted_with_subkey2 = applyFeistel(permuted_text.substr(0, 4), permuted_text.substr(4), subkey2);
@@ -183,7 +185,7 @@ protected:
         return s.substr(1, size - 1) + s[0];
     }
 
-    string getFirstSubkey(string key) {
+    string getFirstSubkey() {
         int size = (int)key.size();
         assert(size % 2 == 0);
         auto permuted_key = permute10(key);
@@ -197,7 +199,7 @@ protected:
         return pickAndPermute8(shifted_l + shifted_r);
     }
 
-    string getSecondSubkey(string key) {
+    string getSecondSubkey() {
         int size = (int)key.size();
         assert(size % 2 == 0);
         auto permuted_key = permute10(key);
