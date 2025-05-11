@@ -1,29 +1,37 @@
 #include <bits/stdc++.h>
 #include "sdes.cpp"
+#include "ecb.cpp"
+#include "cbc.cpp"
+
 using namespace std;
 
 int main() {
 
-    string key = "1010000010"; // TESTE!!!!! copiar a certa do pdf do trabalho
-    // cout << get_first_subkey(key) << endl;
-    // cout << get_second_subkey(key) << endl;
-    // string x = "12345678";
-    // assert(x == apply_inverse_of_identity_permutation(apply_identity_permutation(x)));
-    // cout << apply_fk("1011", "1101", "0000") << "\n";
-    // cout << sbox_lookup(s0, "00", "10") << "\n";
+    // TODO: mostrar tudo no console
+    // geração da primeira subkey, da segunda e etc
+    // como se fosse um log mesmo
 
-    auto sdes = SDES(key);
-
-    string text = "10101010";
+    string key = "1010000010";
+    string text = "11010111011011001011101011110000";
     cout << "Plaintext: " << text << "\n";
 
-    string encrypted_text = sdes.encrypt(text);
-    cout << "Encrypted text: " << encrypted_text << "\n";
+    {
+        auto ecb = ECB(key);
+        string encrypted_text = ecb.encrypt(text);
+        cout << "Encrypted text with ECB: " << encrypted_text << "\n";
+        string decrypted_text = ecb.decrypt(encrypted_text);
+        // cout << "Decrypted text: " << decrypted_text << "\n";
+        assert(text == decrypted_text);
+    }
 
-    string decrypted_text = sdes.decrypt(encrypted_text);
-    cout << "Decrypted text: " << decrypted_text << "\n";
-    
-    assert(text == decrypted_text);
+    {
+        auto cbc = CBC(key, "01010101");
+        string encrypted_text = cbc.encrypt(text);
+        cout << "Encrypted text with CBC: " << encrypted_text << "\n";
+        string decrypted_text = cbc.decrypt(encrypted_text);
+        // cout << "Decrypted text: " << decrypted_text << "\n";
+        assert(text == decrypted_text);
+    }
 
     return 0;
 

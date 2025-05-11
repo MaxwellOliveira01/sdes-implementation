@@ -1,3 +1,6 @@
+#ifndef SDES_H
+#define SDES_H
+
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -21,7 +24,7 @@ public:
         assert((int)key.size() == 10);
     }
     
-    string encrypt(string block) {
+    virtual string encrypt(string block) {
         assert((int)block.size() == BLOCK_SIZE);
 
         auto subkey1 = getFirstSubkey();
@@ -35,7 +38,7 @@ public:
         return applyInverseOfIdentityPermutation(permuted_with_subkey2);
     }
 
-    string decrypt(string block) {
+    virtual string decrypt(string block) {
         assert((int)block.size() == BLOCK_SIZE);
 
         auto subkey1 = getFirstSubkey();
@@ -218,3 +221,5 @@ protected:
     }
 
 };
+
+#endif
