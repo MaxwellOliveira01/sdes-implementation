@@ -34,8 +34,17 @@ public:
         auto permuted_with_subkey1 = applyFeistel(permuted_text.substr(0, 4), permuted_text.substr(4), subkey1);
         auto switched = switchFunction(permuted_with_subkey1);
         auto permuted_with_subkey2 = applyFeistel(switched.substr(0, 4), switched.substr(4), subkey2);
+        auto encrypted_text = applyInverseOfIdentityPermutation(permuted_with_subkey2);
 
-        return applyInverseOfIdentityPermutation(permuted_with_subkey2);
+        // cout << "Key: " << key << "\n";
+        // cout << "Subkey1: " << subkey1 << "\n";
+        // cout << "Subkey2: " << subkey2 << "\n";
+        // cout << "permuted_with_subkey1: " << permuted_text << "\n";
+        // cout << "switched: " << switched << "\n";
+        // cout << "permuted_with_subkey2: " << permuted_with_subkey2 << "\n";
+        // cout << "encrypted_text: " << encrypted_text << "\n";
+
+        return encrypted_text;
     }
 
     virtual string decrypt(string block) {
@@ -52,7 +61,7 @@ public:
         return applyInverseOfIdentityPermutation(permuted_with_subkey1);
     }
 
-protected:
+// protected:
 
     const vector<int> p10 = {3, 5, 2, 7, 4, 10, 1, 9, 8, 6};    // p10 permutation
     const vector<int> p8 = {6, 3, 7, 4, 8, 5, 10, 9};           // p8 permutation
@@ -81,7 +90,7 @@ protected:
         assert((int)col.size() == 2);
         int row_num = (row[0] - '0') * 2 + (row[1] - '0');
         int col_num = (col[0] - '0') * 2 + (col[1] - '0');
-        return s0[row_num][col_num];
+        return sbox[row_num][col_num];
     }
 
     int sbox0Lookup(string row, string col) {
