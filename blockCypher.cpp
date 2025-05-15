@@ -8,7 +8,7 @@ using namespace std;
 class BlockCypher {
 public:
     int BLOCK_SIZE;
-    virtual string encrypt(string plainText) = 0;
+    virtual string encrypt(string plainText, bool log = false) = 0;
     virtual string decrypt(string cipherText) = 0;
 };
 

@@ -24,7 +24,7 @@ public:
         BLOCK_SIZE = 8;
     }
     
-    virtual string encrypt(string block) override {
+    virtual string encrypt(string block, bool log = false) override {
         assert((int)block.size() == BLOCK_SIZE);
 
         auto subkey1 = getFirstSubkey();
@@ -36,13 +36,15 @@ public:
         auto permuted_with_subkey2 = applyFeistel(switched.substr(0, 4), switched.substr(4), subkey2);
         auto encrypted_text = applyInverseOfIdentityPermutation(permuted_with_subkey2);
 
-        // cout << "Key: " << key << "\n";
-        // cout << "Subkey1: " << subkey1 << "\n";
-        // cout << "Subkey2: " << subkey2 << "\n";
-        // cout << "permuted_with_subkey1: " << permuted_text << "\n";
-        // cout << "switched: " << switched << "\n";
-        // cout << "permuted_with_subkey2: " << permuted_with_subkey2 << "\n";
-        // cout << "encrypted_text: " << encrypted_text << "\n";
+        if(log) {
+            cout << "Key: " << key << "\n";
+            cout << "Subkey1: " << subkey1 << "\n";
+            cout << "Subkey2: " << subkey2 << "\n";
+            cout << "permuted_with_subkey1: " << permuted_text << "\n";
+            cout << "switched: " << switched << "\n";
+            cout << "permuted_with_subkey2: " << permuted_with_subkey2 << "\n";
+            cout << "encrypted_text: " << encrypted_text << "\n";
+        }
 
         return encrypted_text;
     }
