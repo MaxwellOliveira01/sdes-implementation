@@ -5,11 +5,31 @@
 
 using namespace std;
 
+string printHex(string b) {
+    string result = "";
+    for(int i = 0; i < (int)b.size(); i += 4) {
+        string block = b.substr(i, 4);
+        int decimal = stoi(block, nullptr, 2);
+        char hexChar = (decimal < 10) ? ('0' + decimal) : ('A' + decimal - 10);
+        result += hexChar;
+    }
+    return result;
+}
+
 int main() {
 
     // TODO: mostrar tudo no console
     // geração da primeira subkey, da segunda e etc
     // como se fosse um log mesmo
+
+    // string text = "11010111";
+    // out esperado = 10101000 ----> A8
+
+    string block = "11010111";
+    auto sdes = SDES("1010000010");
+    auto sdesResult = sdes.encrypt(block);
+    cout << "SDES encrypt block result: " << sdesResult << " " << printHex(sdesResult) << "\n\n";
+    assert(sdes.decrypt(sdesResult) == block);
 
     string key = "1010000010";
     string text = "11010111011011001011101011110000";
@@ -18,7 +38,7 @@ int main() {
     {
         auto ecb = ECB(key);
         string encrypted_text = ecb.encrypt(text);
-        cout << "Encrypted text with ECB: " << encrypted_text << "\n";
+        cout << "Encrypted text with ECB: " << encrypted_text << " " << printHex(encrypted_text) << "\n";
         string decrypted_text = ecb.decrypt(encrypted_text);
         // cout << "Decrypted text: " << decrypted_text << "\n";
         assert(text == decrypted_text);
@@ -27,7 +47,7 @@ int main() {
     {
         auto cbc = CBC(key, "01010101");
         string encrypted_text = cbc.encrypt(text);
-        cout << "Encrypted text with CBC: " << encrypted_text << "\n";
+        cout << "Encrypted text with CBC: " << encrypted_text << " " << printHex(encrypted_text) << "\n";
         string decrypted_text = cbc.decrypt(encrypted_text);
         // cout << "Decrypted text: " << decrypted_text << "\n";
         assert(text == decrypted_text);
