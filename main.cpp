@@ -2,6 +2,7 @@
 #include "sdes.cpp"
 #include "ecb.cpp"
 #include "cbc.cpp"
+#include "blockCypher.cpp"
 
 using namespace std;
 
@@ -36,7 +37,7 @@ int main() {
     cout << "Plaintext: " << text << "\n";
 
     {
-        auto ecb = ECB(key);
+        auto ecb = ECB(&sdes);
         string encrypted_text = ecb.encrypt(text);
         cout << "Encrypted text with ECB: " << encrypted_text << " " << printHex(encrypted_text) << "\n";
         string decrypted_text = ecb.decrypt(encrypted_text);
@@ -45,7 +46,7 @@ int main() {
     }
 
     {
-        auto cbc = CBC(key, "01010101");
+        auto cbc = CBC(&sdes, "01010101");
         string encrypted_text = cbc.encrypt(text);
         cout << "Encrypted text with CBC: " << encrypted_text << " " << printHex(encrypted_text) << "\n";
         string decrypted_text = cbc.decrypt(encrypted_text);
@@ -56,3 +57,9 @@ int main() {
     return 0;
 
 }
+
+// SDES encrypt block result: 10101000 A8
+
+// Plaintext: 11010111011011001011101011110000
+// Encrypted text with ECB: 10101000000011010010111001101101 A80D2E6D
+// Encrypted text with CBC: 00001011101010011001101101101010 0BA99B6A

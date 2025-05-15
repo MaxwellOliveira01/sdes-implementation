@@ -2,6 +2,7 @@
 #define SDES_H
 
 #include <bits/stdc++.h>
+#include "blockCypher.cpp"
 using namespace std;
 
 // xor operator for strings - 1011 ^ 1101 = 0101
@@ -14,17 +15,16 @@ string operator ^ (const string& str, string p) { //
     return ans;
 }
 
-class SDES {
+class SDES : public BlockCypher {
 public:
-    const int BLOCK_SIZE = 8; // bits
-    
     string key;
 
     SDES(string key_) : key(key_) {
         assert((int)key.size() == 10);
+        BLOCK_SIZE = 8;
     }
     
-    virtual string encrypt(string block) {
+    virtual string encrypt(string block) override {
         assert((int)block.size() == BLOCK_SIZE);
 
         auto subkey1 = getFirstSubkey();
@@ -47,7 +47,7 @@ public:
         return encrypted_text;
     }
 
-    virtual string decrypt(string block) {
+    virtual string decrypt(string block) override {
         assert((int)block.size() == BLOCK_SIZE);
 
         auto subkey1 = getFirstSubkey();
@@ -61,7 +61,7 @@ public:
         return applyInverseOfIdentityPermutation(permuted_with_subkey1);
     }
 
-// protected:
+protected:
 
     const vector<int> p10 = {3, 5, 2, 7, 4, 10, 1, 9, 8, 6};    // p10 permutation
     const vector<int> p8 = {6, 3, 7, 4, 8, 5, 10, 9};           // p8 permutation
