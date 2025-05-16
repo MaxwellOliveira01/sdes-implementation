@@ -17,18 +17,30 @@ string operator ^ (const string& str, string p) { //
 
 class SDES : public BlockCypher {
 public:
-    string key;
 
-    SDES(string key_) : key(key_) {
+    string key;
+    string subkey1;
+    string subkey2;
+    bool debug;
+
+    SDES(string key_, bool debug_) : key(key_), debug(debug_) {
         assert((int)key.size() == 10);
         BLOCK_SIZE = 8;
+
+        subkey1 = getFirstSubkey();
+        subkey2 = getSecondSubkey();
+    
+        if(debug) {
+            cout << "-------\n";
+            cout << "key: " << key << "\n";
+            cout << "subkey1: " << subkey1 << "\n";
+            cout << "subkey2: " << subkey2 << "\n";   
+            cout << "-------\n";
+        }
     }
     
-    virtual string encrypt(string block, bool log = false) override {
+    virtual string encrypt(string block) override {
         assert((int)block.size() == BLOCK_SIZE);
-
-        auto subkey1 = getFirstSubkey();
-        auto subkey2 = getSecondSubkey();
 
         auto permuted_text = applyIdentityPermutation(block);
         auto permuted_with_subkey1 = applyFeistel(permuted_text.substr(0, 4), permuted_text.substr(4), subkey1);
@@ -36,14 +48,15 @@ public:
         auto permuted_with_subkey2 = applyFeistel(switched.substr(0, 4), switched.substr(4), subkey2);
         auto encrypted_text = applyInverseOfIdentityPermutation(permuted_with_subkey2);
 
-        if(log) {
-            cout << "Key: " << key << "\n";
-            cout << "Subkey1: " << subkey1 << "\n";
-            cout << "Subkey2: " << subkey2 << "\n";
-            cout << "permuted_with_subkey1: " << permuted_text << "\n";
-            cout << "switched: " << switched << "\n";
-            cout << "permuted_with_subkey2: " << permuted_with_subkey2 << "\n";
-            cout << "encrypted_text: " << encrypted_text << "\n";
+        if(debug) {
+            cout << "\nEncrypting block: " << block << "\n";
+            cout << "after application of identity permutation: " << permuted_text << "\n";
+            cout << "after first round of feistel with subkey1: " << permuted_with_subkey1 << "\n";
+            cout << "after switch function: " << switched << "\n";
+            cout << "after second round of feistel with subkey2: " << permuted_with_subkey2 << "\n";
+            cout << "after application of inverse of identity permutation: " << encrypted_text << "\n";
+            cout << "encrypted text: " << encrypted_text << "\n";
+            cout << "\n";
         }
 
         return encrypted_text;
@@ -52,15 +65,23 @@ public:
     virtual string decrypt(string block) override {
         assert((int)block.size() == BLOCK_SIZE);
 
-        auto subkey1 = getFirstSubkey();
-        auto subkey2 = getSecondSubkey();
-
         auto permuted_text = applyIdentityPermutation(block);
         auto permuted_with_subkey2 = applyFeistel(permuted_text.substr(0, 4), permuted_text.substr(4), subkey2);
         auto switched = switchFunction(permuted_with_subkey2);
         auto permuted_with_subkey1 = applyFeistel(switched.substr(0, 4), switched.substr(4), subkey1);
+        auto decrypted_text = applyInverseOfIdentityPermutation(permuted_with_subkey1);
 
-        return applyInverseOfIdentityPermutation(permuted_with_subkey1);
+        if (debug) {
+            cout << "\nDecrypting block: " << block << "\n";
+            cout << "after application of identity permutation: " << permuted_text << "\n";
+            cout << "after one round of feistel with subkey2: " << permuted_with_subkey2 << "\n";
+            cout << "after switch function: " << switched << "\n";
+            cout << "after second round of feistel with subkey1: " << permuted_with_subkey1 << "\n";
+            cout << "decrypted text: " << decrypted_text << "\n";
+            cout << "\n";
+        }
+
+        return decrypted_text;
     }
 
 protected:
@@ -72,14 +93,14 @@ protected:
     const vector<int> ep = {4, 1, 2, 3, 2, 3, 4, 1};            // expansion/permutation
     const vector<int> sbox_permutation = {2, 4, 3, 1};          // S-box permutation
 
-    const vector<vector<int>> s0 = {
+    const vector<vector<int>> s0 = {                            // first sbox
         {1, 0, 3, 2},
         {3, 2, 1, 0},
         {0, 2, 1, 3},
         {3, 1, 3, 2}
     };
 
-    const vector<vector<int>> s1 = {
+    const vector<vector<int>> s1 = {                            // second sbox
         {0, 1, 2, 3},
         {2, 0, 1, 3},
         {3, 0, 1, 0},
@@ -139,13 +160,6 @@ protected:
 
         string s1_row = { pos_mapping[4], pos_mapping[7] };
         string s1_col = { pos_mapping[5], pos_mapping[6] };
-
-        // cout << "pos_mapping: " << pos_mapping << endl;
-        // cout << "expanded_mask: " << expanded_mask << endl;
-        // cout << "s0_row: " << s0_row << endl;
-        // cout << "s0_col: " << s0_col << endl;
-        // cout << "s1_row: " << s1_row << endl;
-        // cout << "s1_col: " << s1_col << endl;
 
         int s0_val = sbox0Lookup(s0_row, s0_col);
         int s1_val = sbox1Lookup(s1_row, s1_col);
