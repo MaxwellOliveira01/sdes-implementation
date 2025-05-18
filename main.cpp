@@ -1,8 +1,8 @@
 #include <bits/stdc++.h>
-#include "sdes.cpp"
-#include "ecb.cpp"
-#include "cbc.cpp"
-#include "blockCypher.cpp"
+#include "code/sdes.cpp"
+#include "code/ecb.cpp"
+#include "code/cbc.cpp"
+#include "code/blockCypher.cpp"
 
 using namespace std;
 
@@ -51,9 +51,9 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    string key = readFromFile("key");
-    string text = readFromFile("plainText");
-    string iv = readFromFile("iv");
+    string key = readFromFile("data/key");
+    string text = readFromFile("data/plainText");
+    string iv = readFromFile("data/iv");
 
     if(debug) {
         cout << "Key: " << key << "\n";
