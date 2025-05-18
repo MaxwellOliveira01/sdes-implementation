@@ -17,44 +17,67 @@ string printHex(string b) {
     return result;
 }
 
-int main() {
+string readFromFile(string path) {
+    ifstream file(path);
+    string res;
+    file >> res;
+    file.close();
+    return res;
+}
 
-    auto sdes = SDES("1010000010");
+int main(int argc, char* argv[]) {
 
-    {
-        string block = "11010111";
-        auto sdesResult = sdes.encrypt(block, true);
-        cout << "SDES encrypt of block " << block << " results in: " << 
-            sdesResult << "(" << printHex(sdesResult) << ")\n\n";
-        assert(sdes.decrypt(sdesResult) == block);
+    bool debug = false;
+    bool useEcb = false;
+    bool useCbc = false;
+
+    for(int i = 1; i < argc; i++) {
+        if(string(argv[i]) == "--debug") {
+            debug = true;
+        } else if(string(argv[i]) == "--ecb") {
+            useEcb = true;
+        } else if(string(argv[i]) == "--cbc") {
+            useCbc = true;
+        }
+    }
+    
+    if(!useEcb && !useCbc) {
+        cout << "Please specify --ecb or --cbc\n";
+        return 1;
     }
 
-    string key = "1010000010";
-    string text = "11010111011011001011101011110000";
-    cout << "Plaintext: " << text << "\n";
+    if(useEcb && useCbc) {
+        cout << "Please specify only one of --ecb or --cbc\n";
+        return 1;
+    }
 
-    {
+    string key = readFromFile("key");
+    string text = readFromFile("plainText");
+    string iv = readFromFile("iv");
+
+    if(debug) {
+        cout << "Key: " << key << "\n";
+        cout << "Plaintext: " << text << "\n";
+        cout << "IV: " << iv << "\n";
+    }
+
+    auto sdes = SDES(key, debug);
+
+    if(useEcb) {
         auto ecb = ECB(&sdes);
         string encrypted_text = ecb.encrypt(text);
-        cout << "Encrypted text with ECB: " << encrypted_text << "(" << printHex(encrypted_text) << ")\n";
+        cout << "Encrypted text with ECB: " << encrypted_text << " -- " << printHex(encrypted_text) << "\n";
         string decrypted_text = ecb.decrypt(encrypted_text);
         assert(text == decrypted_text);
-    }
-
-    {
-        auto cbc = CBC(&sdes, "01010101");
+    } else { // cbc
+        auto cbc = CBC(&sdes, iv);
         string encrypted_text = cbc.encrypt(text);
-        cout << "Encrypted text with CBC: " << encrypted_text << "(" << printHex(encrypted_text) << ")\n";
+        cout << "Encrypted text with CBC: " << encrypted_text << " -- " << printHex(encrypted_text) << "\n";
         string decrypted_text = cbc.decrypt(encrypted_text);
         assert(text == decrypted_text);
+
     }
 
     return 0;
 
 }
-
-// SDES encrypt block result: 10101000 A8
-
-// Plaintext: 11010111011011001011101011110000
-// Encrypted text with ECB: 10101000000011010010111001101101 A80D2E6D
-// Encrypted text with CBC: 00001011101010011001101101101010 0BA99B6A
